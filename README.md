@@ -2,10 +2,6 @@
 
 DNA barcode-based aquatic species classification using canonical k-mer frequencies and RandomForest
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-MVP-brightgreen.svg)](#model-performance)
-[![Accuracy](https://img.shields.io/badge/Top-1%20Accuracy-96.1%25-success.svg)](#model-performance)
-
 ---
 
 ## Quick Start
@@ -53,22 +49,19 @@ python predict_species.py     # Predict unknown sequences
 
 ```mermaid
 flowchart TD
-    A[sequence.fasta\nRaw COI sequences] --> B[filter_dataset.py\nMin 20 sequences/species]
-    B --> C[filtered_sequences.fasta]
-    C --> D[build_features.py\nCanonical 5-mer frequencies]
-    D --> E[kmer_dataset.csv\n+ feature_metadata.json]
-    E --> F[train_model.py\nRandomForest]
-    F --> G[aquatic_species_model.pkl\n+ rf_label_encoder.pkl]
-    G --> H[predict_species.py\nTop-5 predictions]
-    H --> I[Results + Confidence]
+    A["sequence.fasta<br/>Raw COI sequences"] --> B["filter_dataset.py<br/>Min 20 sequences/species"]
+    B --> C["filtered_sequences.fasta"]
+    C --> D["build_features.py<br/>Canonical 5-mer frequencies"]
+    D --> E["kmer_dataset.csv<br/>+ feature_metadata.json"]
+    E --> F["train_model.py<br/>RandomForest"]
+    F --> G["aquatic_species_model.pkl<br/>+ rf_label_encoder.pkl"]
+    G --> H["predict_species.py<br/>Top-5 predictions"]
+    H --> I["Results + Confidence"]
 
     classDef default fill:#f5f5f5,stroke:#333,stroke-width:1px
     classDef input fill:#e0e0e0,stroke:#333
-    style A classDef input
-    style C classDef input
-    style E classDef input
-    style G classDef input
-    style I classDef input
+
+    class A,C,E,G,I input
 ```
 
 ### Feature Engineering (The Key Fix)
