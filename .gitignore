@@ -1,0 +1,62 @@
+# Virtual environments
+.venv/
+venv/
+env/
+*.env
+
+# Conda environments
+*.conda-env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Large data files (not for GitHub)
+*.fasta
+*.fa
+*.fastq
+*.fq
+*.csv
+*.pkl
+*.pickle
+*.joblib
+*.model
+
+# Model artifacts
+*_species_model.pkl
+*_label_encoder.pkl
+rf_label_encoder.pkl
+label_encoder.pkl
+xgboost_species_model.pkl
+aquatic_species_model.pkl
+
+# Dataset outputs
+kmer_dataset.csv
+feature_metadata.json
+filtered_sequences.fasta
+
+# Reports / logs
+*_report.txt
+output.txt
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
