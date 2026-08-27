@@ -1,14 +1,14 @@
-# 🐟 Aqua Species Finder
+# Aqua Species Finder
 
-> **DNA barcode-based aquatic species classification** using canonical k-mer frequencies and RandomForest
+DNA barcode-based aquatic species classification using canonical k-mer frequencies and RandomForest
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-MVP-brightgreen.svg)](#)
-[![Accuracy](https://img.shields.io/badge/Top--1%20Accuracy-96.1%25-success.svg)](#-model-performance)
+[![Status](https://img.shields.io/badge/Status-MVP-brightgreen.svg)](#model-performance)
+[![Accuracy](https://img.shields.io/badge/Top-1%20Accuracy-96.1%25-success.svg)](#model-performance)
 
 ---
 
-## 🎯 Quick Start
+## Quick Start
 
 ```bash
 # 1. Clone & setup
@@ -18,11 +18,11 @@ cd aqua-species-finder
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Download dataset (see [Dataset](#-dataset) below)
+# 3. Download dataset (see Dataset below)
 # Place COI FASTA as sequence.fasta
 
 # 4. Run pipeline
-python filter_dataset.py      # Filter species with ≥20 sequences
+python filter_dataset.py      # Filter species with >=20 sequences
 python build_features.py      # Extract normalized k-mer frequencies
 python train_model.py         # Train RandomForest (~40s, 96% accuracy)
 python predict_species.py     # Predict unknown sequences
@@ -30,57 +30,60 @@ python predict_species.py     # Predict unknown sequences
 
 ---
 
-## 📊 Model Performance
+## Model Performance
 
 | Metric | Score | Details |
 |--------|-------|---------|
-| **Top-1 Accuracy** | **96.1%** | RandomForest, stratified 80/20 split |
-| **Top-3 Accuracy** | **98.6%** | |
-| **Top-5 Accuracy** | **98.8%** | |
-| **Classes** | 2,115 species | Species with ≥20 sequences |
-| **Training Samples** | 88,443 | After deduplication |
-| **Test Samples** | 22,111 | |
-| **Features** | 512 canonical 5-mers | Orientation-invariant (min(kmer, revcomp)) |
-| **Training Time** | ~40 seconds | 30 trees, 8 cores, 110k samples |
+| Top-1 Accuracy | **96.1%** | RandomForest, stratified 80/20 split |
+| Top-3 Accuracy | **98.6%** | |
+| Top-5 Accuracy | **98.8%** | |
+| Classes | 2,115 species | Species with >=20 sequences |
+| Training Samples | 88,443 | After deduplication |
+| Test Samples | 22,111 | |
+| Features | 512 canonical 5-mers | Orientation-invariant (min(kmer, revcomp)) |
+| Training Time | ~40 seconds | 30 trees, 8 cores, 110k samples |
 
-> ⚠️ **Honest accuracy**: Due to ~50% exact-duplicate feature vectors, random splits inflate scores by ~3%. Grouped (duplicate-aware) evaluation gives **~93%** — still a strong baseline for 2,100+ classes.
+> **Note on accuracy**: Due to ~50% exact-duplicate feature vectors, random splits inflate scores by ~3%. Grouped (duplicate-aware) evaluation gives **~93%** — still a strong baseline for 2,100+ classes.
 
 ---
 
-## 🔬 Methodology
+## Methodology
 
 ### Pipeline Architecture
 
 ```mermaid
 flowchart TD
-    A[sequence.fasta<br/>Raw COI sequences] --> B[filter_dataset.py<br/>Min 20 sequences/species]
+    A[sequence.fasta\nRaw COI sequences] --> B[filter_dataset.py\nMin 20 sequences/species]
     B --> C[filtered_sequences.fasta]
-    C --> D[build_features.py<br/>Canonical 5-mer frequencies]
-    D --> E[kmer_dataset.csv<br/>+ feature_metadata.json]
-    E --> F[train_model.py<br/>RandomForest]
-    F --> G[aquatic_species_model.pkl<br/>+ rf_label_encoder.pkl]
-    G --> H[predict_species.py<br/>Top-5 predictions]
+    C --> D[build_features.py\nCanonical 5-mer frequencies]
+    D --> E[kmer_dataset.csv\n+ feature_metadata.json]
+    E --> F[train_model.py\nRandomForest]
+    F --> G[aquatic_species_model.pkl\n+ rf_label_encoder.pkl]
+    G --> H[predict_species.py\nTop-5 predictions]
     H --> I[Results + Confidence]
 
-    style A fill:#e1f5fe,stroke:#01579b
-    style C fill:#fff3e0,stroke:#e65100
-    style E fill:#e8f5e9,stroke:#1b5e20
-    style G fill:#fce4ec,stroke:#880e4f
-    style I fill:#f3e5f5,stroke:#4a148c
+    classDef default fill:#f5f5f5,stroke:#333,stroke-width:1px
+    classDef input fill:#e0e0e0,stroke:#333
+    style A classDef input
+    style C classDef input
+    style E classDef input
+    style G classDef input
+    style I classDef input
 ```
 
 ### Feature Engineering (The Key Fix)
 
 ```mermaid
 flowchart LR
-    A[DNA Sequence<br/>ATCG...] --> B[Clean: Remove non-ATCG]
+    A[DNA Sequence\nATCG...] --> B[Clean: Remove non-ATCG]
     B --> C[Sliding window k=5]
-    C --> D[Count canonical 5-mers<br/>min(kmer, revcomp)]
-    D --> E[Normalize to frequencies<br/>sum = 1.0]
+    C --> D[Count canonical 5-mers\nmin(kmer, revcomp)]
+    D --> E[Normalize to frequencies\nsum = 1.0]
     E --> F[512-dim feature vector]
 
-    style A fill:#e3f2fd,stroke:#0d47a1
-    style F fill:#e8f5e9,stroke:#1b5e20
+    classDef default fill:#f5f5f5,stroke:#333,stroke-width:1px
+    style A fill:#e0e0e0,stroke:#333
+    style F fill:#e0e0e0,stroke:#333
 ```
 
 **Why normalization matters**: Raw k-mer counts scale with sequence length. A 650bp sequence has ~646 5-mers; a 300bp sequence has ~296. Models trained on counts fail on sequences of different lengths. **Frequencies fix this completely.**
@@ -92,49 +95,50 @@ flowchart TD
     A[kmer_dataset.csv] --> B[Stratified Split 80/20]
     B --> C[Train: 88,443 samples]
     B --> D[Test: 22,111 samples]
-    C --> E[RandomForest<br/>n_estimators=30<br/>max_features=sqrt]
+    C --> E[RandomForest\nn_estimators=30\nmax_features=sqrt]
     E --> F[Model + Encoder]
     F --> G[Top-1 / Top-3 / Top-5 Accuracy]
     D --> G
-    G --> H[Classification Report<br/>rf_report.txt]
+    G --> H[Classification Report\nrf_report.txt]
 
-    style E fill:#fff3e0,stroke:#e65100
-    style G fill:#e8f5e9,stroke:#1b5e20
+    classDef default fill:#f5f5f5,stroke:#333,stroke-width:1px
+    style E fill:#e0e0e0,stroke:#333
+    style G fill:#e0e0e0,stroke:#333
 ```
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 aqua-species-finder/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-├── kmer_utils.py              # 🔑 Single source of truth for features
+├── kmer_utils.py              # Single source of truth for features
 ├── filter_dataset.py          # Filter FASTA by species count
 ├── build_features.py          # Build normalized frequency dataset
-├── train_model.py             # ✅ Main trainer (RandomForest)
-├── train_xgboost.py           # ⚠️ Experimental (XGBoost)
+├── train_model.py             # Main trainer (RandomForest)
+├── train_xgboost.py           # Experimental (XGBoost)
 ├── predict_species.py         # Predict with RF model
 ├── predict_xgboost.py         # Predict with XGB model
 ├── analysis.py                # Dataset exploration
-└── sequence.fasta             # ← USER PROVIDED (not in repo)
+└── sequence.fasta             # USER PROVIDED (not in repo)
 ```
 
 ### Key Files
 
 | File | Purpose |
 |------|---------|
-| `kmer_utils.py` | **Single source of truth** — canonical 5-mers (512), cleaning, frequency extraction |
+| `kmer_utils.py` | Single source of truth — canonical 5-mers (512), cleaning, frequency extraction |
 | `filter_dataset.py` | Removes species with <20 sequences; outputs `filtered_sequences.fasta` |
-| `build_features.py` | Converts sequences → normalized k-mer frequencies (512-d), saves CSV + metadata |
-| `train_model.py` | **Main trainer** — stratified split, RF, saves model + encoder + report |
+| `build_features.py` | Converts sequences -> normalized k-mer frequencies (512-d), saves CSV + metadata |
+| `train_model.py` | Main trainer — stratified split, RF, saves model + encoder + report |
 | `predict_species.py` | Loads model, predicts unknown FASTA, top-5 + low-confidence warning |
 
 ---
 
-## 🧬 Dataset
+## Dataset
 
 ### Required Format
 
@@ -147,30 +151,29 @@ TTTTGGTGCCTGAGCAGGCATGGTGGGCACCGCCCTCAGCCTCCTTATCCGGGCAGAATTGAGTCAGCCG...
 CCTCTATCTGGTATTCGGTGCCTGAGCCGGCATGGTCGGTACAGCTTTAAGTTTACTCATCCGAGCAGAA...
 ```
 
-> **📥 Dataset URL**: **[Add your dataset source here]**  
-> Example: `https://www.ncbi.nlm.nih.gov/...` or `https://www.boldsystems.org/...`
+**Dataset URL**: https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=1169740
 
 ### Species Coverage
 
 | Statistic | Value |
 |-----------|-------|
 | Total raw sequences | ~178,000 |
-| After filtering (≥20 seqs/species) | 110,554 sequences, 2,115 species |
+| After filtering (>=20 seqs/species) | 110,554 sequences, 2,115 species |
 | Largest class | `Actinopterygii environmental` (2,254) |
 | Non-species labels | ~12% (`sp.`, `cf.`, `environmental`, `UNVERIFIED:`) |
 | Exact duplicate feature vectors | ~50% (56,079 / 110,554) |
 
-**Known limitation**: Your test species `Seriola quinqueradiata` has only **10 samples** — filtered out at ≥20 threshold. The model correctly predicts the closest related species `Seriola lalandi` (99 samples).
+**Known limitation**: Your test species `Seriola quinqueradiata` has only **10 samples** — filtered out at >=20 threshold. The model correctly predicts the closest related species `Seriola lalandi` (99 samples).
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### `build_features.py` — Key Settings
 
 ```python
-MIN_SAMPLES_PER_CLASS = 20   # Minimum sequences per species (increase → fewer classes, faster training)
-K = 5                        # k-mer length (5 → 512 canonical features)
+MIN_SAMPLES_PER_CLASS = 20   # Minimum sequences per species (increase -> fewer classes, faster training)
+K = 5                        # k-mer length (5 -> 512 canonical features)
 CANONICAL = True             # Use min(kmer, revcomp) for orientation invariance
 MIN_LENGTH = 300             # Minimum sequence length (bp)
 MAX_LENGTH = 1500            # Maximum sequence length (bp) — excludes full mitogenomes
@@ -180,7 +183,7 @@ MAX_LENGTH = 1500            # Maximum sequence length (bp) — excludes full mi
 
 ```python
 TEST_SIZE = 0.2              # 20% test split (stratified)
-N_ESTIMATORS = 30            # Number of trees (increase → better accuracy, slower)
+N_ESTIMATORS = 30            # Number of trees (increase -> better accuracy, slower)
 MAX_FEATURES = "sqrt"        # Feature subsampling per split
 ```
 
@@ -192,7 +195,7 @@ CONFIDENCE_THRESHOLD = 50.0  # Warn if top prediction < 50% confidence
 
 ---
 
-## 🧪 Example Output
+## Example Output
 
 ```bash
 $ python predict_species.py
@@ -212,34 +215,14 @@ WARNING: low confidence. The true species may be missing from the training data.
 
 ---
 
-## 🐛 Known Issues & Limitations (from Deep Diagnosis)
+## Known Issues & Limitations (from Deep Diagnosis)
 
 | Issue | Impact | Root Cause | Fix |
 |-------|--------|------------|-----|
-| **Duplicate feature vectors** (~50%) | Inflates random-split accuracy by ~3% | Multiple vouchers per species yield identical k-mer profiles | Use grouped stratified split for honest eval |
-| **Non-species labels** (~12%) | Pollutes class space | `extract_species_name` grabs words 2-3 blindly | Filter `sp.`, `cf.`, `environmental`, `UNVERIFIED:` |
-| **Rare species** (<20 samples) | Excluded from training | Hard threshold at 20 sequences | Lower threshold OR add more sequences from BOLD/NCBI |
-| **XGBoost `min_child_weight=2`** | Breaks multi-class with 2000+ classes | Hessian sum requirement → 4,232 rows/leaf vs 42 median | Use `1e-3` or stick with RandomForest |
-| **Feature mismatch guard** | Compares metadata vs utils, not vs model | `meta["feature_columns"] != FEATURE_COLUMNS` | Validate `model.n_features_in_ == len(FEATURE_COLUMNS)` |
-| **float64 → float32 copy** | 2x memory during CSV load | `pd.read_csv` parses to float64 first | Pass explicit `dtype` map to `read_csv` |
-
-> **Deep technical analysis**: See the diagnostic logic merged above. The core issue was `min_child_weight=2` in XGBoost making it mathematically impossible to isolate any species among 2,115 classes (requires 4,232 rows/leaf vs 42 median). RandomForest avoids this entirely.
-
----
-
-## 🚀 Future Improvements
-
-- [ ] Deduplicate by feature vector + grouped stratified split
-- [ ] Filter non-species labels (`sp.`, `cf.`, `environmental`)
-- [ ] Add LightGBM / CatBoost with GPU support
-- [ ] Hierarchical classification (genus → species)
-- [ ] Confidence calibration (Platt / isotonic)
-- [ ] Web API / Docker deployment
-
----
-
-## 🙏 Acknowledgments
-
-- NCBI / BOLD for COI barcode data
-- scikit-learn, XGBoost, Biopython communities
-- k-mer based DNA classification literature
+| Duplicate feature vectors (~50%) | Inflates random-split accuracy by ~3% | Multiple vouchers per species yield identical k-mer profiles | Use grouped stratified split for honest eval |
+| Non-species labels (~12%) | Pollutes class space | `extract_species_name` grabs words 2-3 blindly | Filter `sp.`, `cf.`, `environmental`, `UNVERIFIED:` |
+| Rare species (<20 samples) | Excluded from training | Hard threshold at 20 sequences | Lower threshold OR add more sequences from BOLD/NCBI |
+| XGBoost `min_child_weight=2` | Breaks multi-class with 2000+ classes | Hessian sum requirement -> 4,232 rows/leaf vs 42 median | Use `1e-3` or stick with RandomForest |
+| Feature mismatch guard | Compares metadata vs utils, not vs model | `meta["feature_columns"] != FEATURE_COLUMNS` | Validate `model.n_features_in_ == len(FEATURE_COLUMNS)` |
+| float64 -> float32 copy | 2x memory during CSV load | `pd.read_csv` parses to float64 first | Pass explicit `dtype` map to `read_csv` |
+> **Deep technical analysis**: The core issue was `min_child_weight=2` in XGBoost making it mathematically impossible to isolate any species among 2,115 classes (requires 4,232 rows/leaf vs 42 median). RandomForest avoids this entirely.
