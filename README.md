@@ -63,15 +63,11 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A[DNA Sequence\nATCG...] --> B[Clean: Remove non-ATCG]
-    B --> C[Sliding window k=5]
-    C --> D[Count canonical 5-mers\nmin(kmer, revcomp)]
-    D --> E[Normalize to frequencies\nsum = 1.0]
-    E --> F[512-dim feature vector]
-
-    classDef default fill:#f5f5f5,stroke:#333,stroke-width:1px
-    style A fill:#e0e0e0,stroke:#333
-    style F fill:#e0e0e0,stroke:#333
+    A["DNA Sequence<br/>ATCG..."] --> B["Clean: Remove non-ATCG"]
+    B --> C["Sliding window k=5"]
+    C --> D["Count canonical 5-mers<br/>min(kmer, revcomp)"]
+    D --> E["Normalize to frequencies<br/>sum = 1.0"]
+    E --> F["512-dim feature vector"]
 ```
 
 **Why normalization matters**: Raw k-mer counts scale with sequence length. A 650bp sequence has ~646 5-mers; a 300bp sequence has ~296. Models trained on counts fail on sequences of different lengths. **Frequencies fix this completely.**
