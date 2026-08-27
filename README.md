@@ -57,11 +57,6 @@ flowchart TD
     F --> G["aquatic_species_model.pkl<br/>+ rf_label_encoder.pkl"]
     G --> H["predict_species.py<br/>Top-5 predictions"]
     H --> I["Results + Confidence"]
-
-    classDef default fill:transparent,stroke:#333,stroke-width:1px
-    classDef input fill:transparent,stroke:#333,stroke-width:1px
-
-    class A,C,E,G,I input
 ```
 
 ### Feature Engineering (The Key Fix)
