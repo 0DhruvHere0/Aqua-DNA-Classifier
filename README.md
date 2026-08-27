@@ -58,8 +58,8 @@ flowchart TD
     G --> H["predict_species.py<br/>Top-5 predictions"]
     H --> I["Results + Confidence"]
 
-    classDef default fill:#f5f5f5,stroke:#333,stroke-width:1px
-    classDef input fill:#e0e0e0,stroke:#333
+    classDef default fill:transparent,stroke:#333,stroke-width:1px
+    classDef input fill:transparent,stroke:#333,stroke-width:1px
 
     class A,C,E,G,I input
 ```
